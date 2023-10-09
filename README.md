@@ -4,57 +4,44 @@
 
 ## 一.前言
 
-此工具解决的痛点是在本地编辑的 Markdown 文件里包含的图片，在博客园发布时，需要手动一张张的复制到博客园的编辑器中上传，十分麻烦，此文中有详细说明：[如何高效的编写与同步博客 （.NET Core 小工具实现）](https://www.cnblogs.com/stulzq/p/9043632.html)
+`工欲善其事必先利其器`，该工具是个十分好用的利器， 源repo[地址](https://github.com/stulzq/dotnet-cnblogs-tool), 详细介绍见[readme](./README_old.md)。
+由于dotnet-cnblog目前仅支持markdown中的 `![](./img/xxx.png)`语法， 不支持html中的img-src语法， 所以本人在其基础上添加新的正则匹配， 增传markdown中的src所对应的图片。
 
 ## 二.安装工具
+- 如果环境之中有了.Net工具则跳过该步骤
+- ubuntu18.04安装dotnet-sdk
+- reference： https://learn.microsoft.com/zh-cn/dotnet/core/install/linux-ubuntu-1804
 
-（1）具有 .NET Core/.NET 5 环境可以直接使用命令安装：
+    ```bash
+    wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+    sudo dpkg -i packages-microsoft-prod.deb
+    rm packages-microsoft-prod.deb
 
-````shell
-dotnet tool install --global dotnet-cnblog
-````
+    sudo apt-get update && \
+    sudo apt-get install -y dotnet-sdk-7.0
+    ```
 
-（2）如果没有上面的环境，那么可以直接下载二进制文件 
+## 三.修改与发布
+- 具体修改参见[ImageHandler.cs](src/dotnet-cnblogs/TagHandlers/ImageHandler.cs)， 
+- 发布二进制文件
+    ```bash
+    dotnet publish -c Release -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IsTrimmable=true -p:TrimMode=link  --self-contained true
+    ```
+## 四.配置账号
+- 这里无需修改，具体操作见[readme](./README_old.md)
 
-下载地址： https://github.com/stulzq/dotnet-cnblogs-tool/releases
+## 五.上传图片
 
-> 因为本工具是开源的，而且使用过程中需要输入 Token，所以不要相信任何第三方下载，因为它们有可能被植入恶意代码，仅提供上面两种方式。
+- 对Markdown文件里的图片进行解析，上传到博客园，并且转换内容保存到新的文件中。
 
-## 三.使用
+    ````shell
+    dotnet-cnblog proc -f <markdown文件路径>
+    ````
+    ![](assets/screenshot.png)
 
-第一次运行需要配置博客ID，账号、Token等，按照提示输入即可，对密码采用tea加密算法进行加密存储。
+- 处理过的内容保存在 `Markdown 原始文件名-cnblog.md` 中，导入到博客园的编辑器发布即可。
 
-![](assets/668104-20201127164440482-852371747.png)
-
->需要账号、Token 是因为调用 MetaWeblog API 需要此信息
-
-Token 申请：https://i.cnblogs.com/settings
-
-![image](https://user-images.githubusercontent.com/13200155/176429548-bf374aa6-b16f-4b12-a464-c5adcaa86d14.png)
-
-2022.6.29 更新，请使用 MetaWeblog Token 替换原来的账户密码！！！
-
-### 重置配置
-
-使用下面的命令重置配置:
-
-````shell
-dotnet-cnblog reset
-````
-![](assets/668104-20201127164512348-139991479.png)
-
-### 四.上传图片
-
-对Markdown文件里的图片进行解析，上传到博客园，并且转换内容保存到新的文件中。
-
-````shell
-dotnet-cnblog proc -f <markdown文件路径>
-````
-![](assets/668104-20201127164728833-2082113229.png)
-
-处理过的内容保存在 `Markdown 原始文件名-cnblog.md` 中，复制粘贴到博客园的编辑器发布即可。
-
-## 五.其他说明
+## 六.其他说明
 
 - 程序未加过多的容错机制，请勿暴力测试。比如发送一个非MarkDown文件到程序。
 
